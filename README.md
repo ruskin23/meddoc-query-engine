@@ -128,10 +128,6 @@ The application is served via a FastAPI server.
     - `PINECONE_API_KEY`: Pinecone API key (uses default if not set)
     - `PINECONE_ENVIRONMENT`: Pinecone environment (uses default if not set)
 
-3.  Test your configuration:
-    ```bash
-    python test_config.py
-    ```
 
 ### Running the Application
 
