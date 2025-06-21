@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.db import Database
 from app.workflows import ingest_pdfs
-from app.core import settings, ValidationError, PDFProcessingError, DatabaseError
+from app.core import settings
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -41,10 +41,10 @@ def ingest_endpoint(request: IngestRequest) -> IngestResponse:
         # Validate directory path
         directory_path = Path(request.directory_path)
         if not directory_path.exists():
-            raise ValidationError(f"Directory does not exist: {request.directory_path}")
+            raise HTTPException(status_code=400, detail=f"Directory does not exist: {request.directory_path}")
         
         if not directory_path.is_dir():
-            raise ValidationError(f"Path is not a directory: {request.directory_path}")
+            raise HTTPException(status_code=400, detail=f"Path is not a directory: {request.directory_path}")
 
         # Check for PDF files in directory
         pdf_files = list(directory_path.glob("*.pdf"))
@@ -67,18 +67,10 @@ def ingest_endpoint(request: IngestRequest) -> IngestResponse:
             files_processed=len(pdf_files)
         )
         
-    except ValidationError as e:
-        logger.error(f"Validation error during ingestion: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
-    
-    except PDFProcessingError as e:
-        logger.error(f"PDF processing error during ingestion: {e}")
-        raise HTTPException(status_code=422, detail=f"PDF processing failed: {str(e)}")
-    
-    except DatabaseError as e:
-        logger.error(f"Database error during ingestion: {e}")
-        raise HTTPException(status_code=500, detail=f"Database operation failed: {str(e)}")
-    
+    except HTTPException:
+        # Re-raise HTTPExceptions as-is
+        raise
+        
     except Exception as e:
-        logger.error(f"Unexpected error during ingestion: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        logger.error(f"Error during ingestion: {e}")
+        raise HTTPException(status_code=500, detail="PDF ingestion operation failed")

@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.workflows import extract_text
 from app.db import Database
-from app.core import settings, ExtractionError, DatabaseError
+from app.core import settings
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -54,14 +54,6 @@ def extract_endpoint() -> ExtractionResponse:
             files_processed=files_to_process
         )
         
-    except ExtractionError as e:
-        logger.error(f"Extraction error: {e}")
-        raise HTTPException(status_code=422, detail=f"Text extraction failed: {str(e)}")
-    
-    except DatabaseError as e:
-        logger.error(f"Database error during extraction: {e}")
-        raise HTTPException(status_code=500, detail=f"Database operation failed: {str(e)}")
-    
     except Exception as e:
-        logger.error(f"Unexpected error during extraction: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        logger.error(f"Error during extraction: {e}")
+        raise HTTPException(status_code=500, detail="Text extraction operation failed")

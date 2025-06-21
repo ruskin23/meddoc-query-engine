@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel, Field
 from openai import OpenAI
 from app.workflows import retreive 
-from app.core import settings, RetrievalError, ConfigurationError, ValidationError
+from app.core import settings
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -52,13 +52,13 @@ def retrieve_endpoint(
     try:
         # Validate query
         if not query.strip():
-            raise ValidationError("Query cannot be empty or contain only whitespace")
+            raise HTTPException(status_code=400, detail="Query cannot be empty or contain only whitespace")
         
         # Validate configuration
         if not settings.openai_api_key:
-            raise ConfigurationError("OpenAI API key is not configured")
+            raise HTTPException(status_code=400, detail="OpenAI API key is not configured")
         if not settings.question_index_name or not settings.chunk_index_name:
-            raise ConfigurationError("Pinecone index names are not configured")
+            raise HTTPException(status_code=400, detail="Pinecone index names are not configured")
         
         client = OpenAI(api_key=settings.openai_api_key)
         results = retreive(
@@ -93,18 +93,10 @@ def retrieve_endpoint(
             processing_time_ms=processing_time
         )
         
-    except ValidationError as e:
-        logger.error(f"Validation error during retrieval: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
-    
-    except ConfigurationError as e:
-        logger.error(f"Configuration error during retrieval: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
-    
-    except RetrievalError as e:
-        logger.error(f"Retrieval error: {e}")
-        raise HTTPException(status_code=422, detail=f"Retrieval failed: {str(e)}")
-    
+    except HTTPException:
+        # Re-raise HTTPExceptions as-is
+        raise
+        
     except Exception as e:
-        logger.error(f"Unexpected error during retrieval: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        logger.error(f"Error during retrieval: {e}")
+        raise HTTPException(status_code=500, detail="Retrieval operation failed")

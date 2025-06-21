@@ -6,7 +6,7 @@ from app.workflows import generate, index
 from sqlalchemy import func
 from openai import OpenAI
 
-from app.core import settings, GenerationError, IndexingError, DatabaseError, ConfigurationError
+from app.core import settings
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -38,9 +38,9 @@ def index_endpoint() -> ProcessingResponse:
     try:
         # Validate configuration
         if not settings.openai_api_key:
-            raise ConfigurationError("OpenAI API key is not configured")
+            raise HTTPException(status_code=400, detail="OpenAI API key is not configured")
         if not settings.question_index_name or not settings.chunk_index_name:
-            raise ConfigurationError("Pinecone index names are not configured")
+            raise HTTPException(status_code=400, detail="Pinecone index names are not configured")
         
         db = Database(settings.database_url)
         
@@ -87,19 +87,11 @@ def index_endpoint() -> ProcessingResponse:
             files_processed=total_files
         )
     
-    except ConfigurationError as e:
-        logger.error(f"Configuration error during processing: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
-    
-    except (GenerationError, IndexingError) as e:
-        logger.error(f"Processing error during pipeline execution: {e}")
-        raise HTTPException(status_code=422, detail=f"Pipeline execution failed: {str(e)}")
-    
-    except DatabaseError as e:
-        logger.error(f"Database error during processing: {e}")
-        raise HTTPException(status_code=500, detail=f"Database operation failed: {str(e)}")
+    except HTTPException:
+        # Re-raise HTTPExceptions as-is
+        raise
     
     except Exception as e:
-        logger.error(f"Unexpected error during processing: {e}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        logger.error(f"Error during processing: {e}")
+        raise HTTPException(status_code=500, detail="Processing operation failed")
 
