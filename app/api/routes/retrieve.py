@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
 from openai import OpenAI
-from app.workflows.retreive import retreive 
+from app.workflows import retreive 
 from app.core import settings
 
 router = APIRouter()

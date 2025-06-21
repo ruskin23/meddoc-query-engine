@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.db import Database
-from app.workflows.ingest import ingest_pdfs
+from app.workflows import ingest_pdfs
 from app.core import settings
 
 router = APIRouter()

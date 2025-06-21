@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.workflows.extract import extract_text
+from app.workflows import extract_text
 from app.db import Database
 from app.core import settings
 

@@ -2,9 +2,16 @@ from pathlib import Path
 from typing import Union
 from app.db import Database, PdfFile
 
+
 def ingest_pdfs(db: Database, folder_path: Union[str, Path]) -> None:
-    """
-    Adds all PDF file paths in a folder to the PdfFile table if not already present.
+    """Add all PDF file paths in a folder to the database if not already present.
+    
+    Args:
+        db: Database connection
+        folder_path: Path to folder containing PDF files
+        
+    Raises:
+        ValueError: If the folder path is invalid or doesn't exist
     """
     folder = Path(folder_path)
     if not folder.exists() or not folder.is_dir():

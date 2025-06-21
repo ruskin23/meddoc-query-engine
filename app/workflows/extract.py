@@ -4,11 +4,15 @@ from app.core import TextExtraction
 from pathlib import Path
 from datetime import datetime
 
+# Initialize text extraction service
 pdf_service = TextExtraction()
 
+
 def extract_text(db: Database) -> None:
-    """
-    Extract text from all PDF files in the DB that haven't been processed yet.
+    """Extract text from all PDF files in the database that haven't been processed yet.
+    
+    Args:
+        db: Database connection
     """
     with db.session() as session:
         files = session.query(PdfFile).filter(PdfFile.extracted == False).all()
@@ -22,6 +26,7 @@ def extract_text(db: Database) -> None:
             try:
                 pages = pdf_service.convert(path)
 
+                # Add each page to the database
                 for page_number, page_text in enumerate(pages):
                     session.add(PdfPages(
                         file_id=file.id,
@@ -29,8 +34,9 @@ def extract_text(db: Database) -> None:
                         page_text=page_text
                     ))
 
+                # Mark file as extracted
                 file.extracted = True
-                file.extracted_at = datetime.now(datetime.now())
+                file.extracted_at = datetime.now()
                 
                 print(f"Extracted {len(pages)} pages from {file.filepath}")
 
