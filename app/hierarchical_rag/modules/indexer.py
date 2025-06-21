@@ -5,8 +5,7 @@ import hashlib
 from datetime import datetime
 
 from app.core.indexing import BaseIndexer
-from app.db.base import Database
-from app.db.models import PdfFile, PdfPages
+from app.db import Database, PdfFile, PdfPages
 
 class DocumentProcessor:
     @staticmethod

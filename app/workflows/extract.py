@@ -1,5 +1,4 @@
-from app.db.base import Database
-from app.db.models import PdfFile, PdfPages
+from app.db import Database, PdfFile, PdfPages
 from app.core.extracting import TextExtraction
 
 from pathlib import Path

@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.db.base import Database
+from app.db import Database
 from app.workflows.ingest import ingest_pdfs
 from app.core.config import settings
 

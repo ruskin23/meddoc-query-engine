@@ -2,7 +2,7 @@ from openai import OpenAI
 
 from app.core.prompting import PromptProcessor, PromptRunner
 from app.core.chunking import ChunkService
-from app.db.base import Database
+from app.db import Database
 from app.hierarchical_rag.modules.generator import PromptService
 from app.hierarchical_rag.modules.prompts import TEMPLATES
 

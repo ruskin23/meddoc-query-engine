@@ -2,8 +2,7 @@ from typing import List
 
 from app.core.pipelines import Generate
 from app.hierarchical_rag.modules.generator import GenerationTask, PageRepository
-from app.db.base import Database
-from app.db.models import PdfFile
+from app.db import Database, PdfFile
 from datetime import datetime
 
 class GenerationPipeline(Generate):

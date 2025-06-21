@@ -1,8 +1,7 @@
 from fastapi import APIRouter
-from app.db.base import Database
+from app.db import Database, PdfFile
 from app.workflows.generate import generate
 from app.workflows.index import index
-from app.db.models import PdfFile
 from sqlalchemy import func
 
 from app.core.config import settings

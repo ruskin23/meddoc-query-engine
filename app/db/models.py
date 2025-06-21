@@ -11,100 +11,118 @@ from sqlalchemy import (
     func
 )
 from sqlalchemy.orm import declarative_base, relationship
+from typing import List, Optional
+from datetime import datetime
 
 Base = declarative_base()
 
 
 class PdfFile(Base):
+    """Model representing a PDF file in the database."""
+    
     __tablename__ = 'pdf_files'
 
-    id = Column(Integer, primary_key=True)
-    filepath = Column(String, unique=True, index=True)
+    id: int = Column(Integer, primary_key=True)
+    filepath: str = Column(String, unique=True, index=True)
 
-    extracted = Column(Boolean, default=False)
-    extracted_at = Column(DateTime, nullable=True)
+    # Processing status flags
+    extracted: bool = Column(Boolean, default=False)
+    extracted_at: Optional[datetime] = Column(DateTime, nullable=True)
 
-    generated = Column(Boolean, default=False)
-    generated_at = Column(DateTime, nullable=True)
+    generated: bool = Column(Boolean, default=False)
+    generated_at: Optional[datetime] = Column(DateTime, nullable=True)
 
-    indexed = Column(Boolean, default=False)
-    indexed_at = Column(DateTime, nullable=True)
+    indexed: bool = Column(Boolean, default=False)
+    indexed_at: Optional[datetime] = Column(DateTime, nullable=True)
 
-    created_at = Column(DateTime, default=func.now())
+    created_at: datetime = Column(DateTime, default=func.now())
 
     # Relationships
-    pages = relationship("PdfPages", back_populates="file")
-    questions = relationship("PageQuestions", back_populates="file")
-    tags = relationship("PageTags", back_populates="file")
-    chunks = relationship("PageChunks", back_populates="file")
+    pages: List['PdfPages'] = relationship("PdfPages", back_populates="file")
+    questions: List['PageQuestions'] = relationship("PageQuestions", back_populates="file")
+    tags: List['PageTags'] = relationship("PageTags", back_populates="file")
+    chunks: List['PageChunks'] = relationship("PageChunks", back_populates="file")
 
 
 class PdfPages(Base):
+    """Model representing individual pages of a PDF file."""
+    
     __tablename__ = 'pdf_pages'
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    file_id = Column(Integer, ForeignKey('pdf_files.id'), index=True)
-    page_number = Column(Integer)
-    page_text = Column(Text)
-    created_at = Column(DateTime, default=func.now())
+    id: int = Column(Integer, primary_key=True, autoincrement=True)
+    file_id: int = Column(Integer, ForeignKey('pdf_files.id'), index=True)
+    page_number: int = Column(Integer)
+    page_text: str = Column(Text)
+    created_at: datetime = Column(DateTime, default=func.now())
 
     __table_args__ = (
         UniqueConstraint('file_id', 'page_number', name='uq_file_page'),
     )
 
     # Relationships
-    file = relationship("PdfFile", back_populates="pages")
-    questions = relationship("PageQuestions", back_populates="page")
-    tags = relationship("PageTags", back_populates="page")
-    chunks = relationship("PageChunks", back_populates="page")
+    file: PdfFile = relationship("PdfFile", back_populates="pages")
+    questions: List['PageQuestions'] = relationship("PageQuestions", back_populates="page")
+    tags: List['PageTags'] = relationship("PageTags", back_populates="page")
+    chunks: List['PageChunks'] = relationship("PageChunks", back_populates="page")
+
 
 class PageQuestions(Base):
+    """Model representing questions extracted from PDF pages."""
+    
     __tablename__ = 'page_questions'
     
-    id = Column(Integer, primary_key=True)
-    page_id = Column(Integer, ForeignKey('pdf_pages.id'))
-    file_id = Column(Integer, ForeignKey('pdf_files.id'))
+    id: int = Column(Integer, primary_key=True)
+    page_id: int = Column(Integer, ForeignKey('pdf_pages.id'))
+    file_id: int = Column(Integer, ForeignKey('pdf_files.id'))
 
-    question = Column(String)
+    question: str = Column(String)
     
     # Relationships
-    page = relationship("PdfPages", back_populates="questions")
-    file = relationship("PdfFile", back_populates="questions")
+    page: PdfPages = relationship("PdfPages", back_populates="questions")
+    file: PdfFile = relationship("PdfFile", back_populates="questions")
 
 
 class PageTags(Base):
+    """Model representing tags extracted from PDF pages."""
+    
     __tablename__ = 'page_tags'
     
-    id = Column(Integer, primary_key=True)
-    page_id = Column(Integer, ForeignKey('pdf_pages.id'))
-    file_id = Column(Integer, ForeignKey('pdf_files.id'))
+    id: int = Column(Integer, primary_key=True)
+    page_id: int = Column(Integer, ForeignKey('pdf_pages.id'))
+    file_id: int = Column(Integer, ForeignKey('pdf_files.id'))
 
-    tag = Column(String)
+    tag: str = Column(String)
     
     # Relationships
-    page = relationship("PdfPages", back_populates="tags")
-    file = relationship("PdfFile", back_populates="tags")
+    page: PdfPages = relationship("PdfPages", back_populates="tags")
+    file: PdfFile = relationship("PdfFile", back_populates="tags")
+
 
 class PageChunks(Base):
+    """Model representing text chunks extracted from PDF pages."""
+    
     __tablename__ = 'page_chunks'
     
-    id = Column(Integer, primary_key=True)
-    page_id = Column(Integer, ForeignKey('pdf_pages.id'))
-    file_id = Column(Integer, ForeignKey('pdf_files.id'))
+    id: int = Column(Integer, primary_key=True)
+    page_id: int = Column(Integer, ForeignKey('pdf_pages.id'))
+    file_id: int = Column(Integer, ForeignKey('pdf_files.id'))
 
-    chunk = Column(String)
+    chunk: str = Column(String)
     
     # Relationships
-    page = relationship("PdfPages", back_populates="chunks")
-    file = relationship("PdfFile", back_populates="chunks")
+    page: PdfPages = relationship("PdfPages", back_populates="chunks")
+    file: PdfFile = relationship("PdfFile", back_populates="chunks")
+
 
 class QueryRetreivals(Base):
+    """Model for storing query retrieval history."""
+    
     __tablename__ = 'query_retreival'
     
-    id = Column(Integer, primary_key=True)
+    id: int = Column(Integer, primary_key=True)
     
-    query = Column(String)
-    created_at = Column(DateTime, default=func.now())
+    query: str = Column(String)
+    created_at: datetime = Column(DateTime, default=func.now())
 
 
 # class ProcessingStep(Base):

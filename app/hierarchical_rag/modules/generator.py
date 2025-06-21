@@ -3,8 +3,7 @@ from sqlalchemy.orm import Session
 from abc import ABC, abstractmethod
 
 from app.core.chunking import ChunkService
-from app.db.models import PdfFile, PdfPages
-from app.db.models import PageQuestions, PageTags, PageChunks
+from app.db import PdfFile, PdfPages, PageQuestions, PageTags, PageChunks
 from app.core.prompting import PromptProcessor, PromptPayload
 
 from ..models.models import QAPairs, TagList

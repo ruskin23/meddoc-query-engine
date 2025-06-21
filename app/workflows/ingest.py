@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import Union
-from app.db.base import Database
-from app.db.models import PdfFile
+from app.db import Database, PdfFile
 
 def ingest_pdfs(db: Database, folder_path: Union[str, Path]) -> None:
     """

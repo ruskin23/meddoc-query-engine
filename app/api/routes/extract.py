@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.workflows.extract import extract_text
-from app.db.base import Database
+from app.db import Database
 from app.core.config import settings
 
 router = APIRouter()
