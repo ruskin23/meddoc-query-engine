@@ -1,16 +1,26 @@
 from typing import List
 
 from app.core import Generate
-from app.hierarchical_rag.modules.generator import GenerationTask, PageRepository
+from app.hierarchical_rag import GenerationTask, PageRepository
 from app.db import Database, PdfFile
 from datetime import datetime
 
+
 class GenerationPipeline(Generate):
-    def __init__(self, db: Database, tasks: List[GenerationTask]):
+    """Pipeline for generating questions, tags, and chunks from extracted PDF content."""
+    
+    def __init__(self, db: Database, tasks: List[GenerationTask]) -> None:
+        """Initialize the generation pipeline.
+        
+        Args:
+            db: Database connection
+            tasks: List of generation tasks to run on each page
+        """
         self.db = db
         self.tasks = tasks
 
-    def run(self):
+    def run(self) -> None:
+        """Run the generation pipeline on all extracted but ungenerated PDF files."""
         with self.db.session() as session:
             # Process files that have been extracted but not yet generated
             files = session.query(PdfFile).filter(
@@ -22,6 +32,7 @@ class GenerationPipeline(Generate):
 
             for file in files:
                 try:
+                    # Process each page with all generation tasks
                     for page in file.pages:
                         for task in self.tasks:
                             task.run(page, file, repo)

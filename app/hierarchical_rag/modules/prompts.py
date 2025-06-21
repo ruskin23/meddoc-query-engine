@@ -3,6 +3,7 @@ from app.core import PromptProcessor, PromptPayload, PromptTemplate
 
 from ..models.models import QAPairs, TagList
 
+# Template definitions for various prompt-based tasks in medical document processing
 TEMPLATES = {
     "page_questions": PromptTemplate(
         name="page_questions",

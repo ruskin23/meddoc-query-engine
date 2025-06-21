@@ -4,15 +4,15 @@ from typing import List
 
 from app.core import EmbeddingService, PromptProcessor, PromptRunner, PineconeRetriever
 
-from app.hierarchical_rag.pipelines.retreiver import RetrievalPipeline
-from app.hierarchical_rag.modules.retreiver import (
+from app.hierarchical_rag import (
+    RetrievalPipeline,
     HierarchicalRetriever,
     PromptBasedExpander,
     PineconeRetrieverAdapter,
-    ScoreReranker
+    ScoreReranker,
+    PromptService,
+    TEMPLATES,
 )
-from app.hierarchical_rag.modules.generator import PromptService
-from app.hierarchical_rag.modules.prompts import TEMPLATES
 
 
 def create_prompt_service(client: OpenAI, model: str) -> PromptService:

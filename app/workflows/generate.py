@@ -2,16 +2,14 @@ from openai import OpenAI
 
 from app.core import PromptProcessor, PromptRunner, ChunkService
 from app.db import Database
-from app.hierarchical_rag.modules.generator import PromptService
-from app.hierarchical_rag.modules.prompts import TEMPLATES
-
-from app.hierarchical_rag.modules.generator import (
+from app.hierarchical_rag import (
+    PromptService,
+    TEMPLATES,
     QuestionGenerationTask,
     TagGenerationTask,
-    ChunkGenerationTask
+    ChunkGenerationTask,
+    GenerationPipeline,
 )
-
-from app.hierarchical_rag.pipelines.generator import GenerationPipeline
 
 def create_prompt_service(client: OpenAI, model: str) -> PromptService:
     runner = PromptRunner(client=client, model=model)

@@ -2,8 +2,7 @@ import pinecone
 from typing import List
 
 from app.core import EmbeddingService, PineconeIndexer
-from app.hierarchical_rag.modules.indexer import HierarchicalIndexing, HierarchicalIndexer
-from app.hierarchical_rag.pipelines.indexer import IndexingPipeline
+from app.hierarchical_rag import HierarchicalIndexing, HierarchicalIndexer, IndexingPipeline
 from app.db import Database
 
 
