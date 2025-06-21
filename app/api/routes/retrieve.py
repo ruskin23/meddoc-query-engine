@@ -60,20 +60,6 @@ def retrieve_endpoint(
         if not settings.question_index_name or not settings.chunk_index_name:
             raise ConfigurationError("Pinecone index names are not configured")
         
-        # Check if there are any indexed files
-        from app.db import Database, PdfFile
-        db = Database(settings.database_url)
-        with db.session() as session:
-            indexed_files = session.query(PdfFile).filter(PdfFile.indexed == True).count()
-            if indexed_files == 0:
-                logger.warning("No indexed files available for retrieval")
-                return RetrievalResponse(
-                    query=query,
-                    results=[],
-                    total_results=0,
-                    processing_time_ms=(time.time() - start_time) * 1000
-                )
-        
         client = OpenAI(api_key=settings.openai_api_key)
         results = retreive(
             query=query,
