@@ -1,17 +1,19 @@
 from typing import List
-import openai
+from openai import OpenAI
 
 
 class EmbeddingService:
     """Service for generating text embeddings using OpenAI's embedding models."""
     
-    def __init__(self, model: str = "text-embedding-3-small") -> None:
+    def __init__(self, model: str = "text-embedding-3-small", client: OpenAI = None) -> None:
         """Initialize the embedding service.
         
         Args:
             model: OpenAI embedding model name
+            client: OpenAI client instance
         """
         self.model = model
+        self.client = client or OpenAI()
 
     def embed(self, texts: List[str]) -> List[List[float]]:
         """Generate embeddings for a list of texts.
@@ -22,8 +24,8 @@ class EmbeddingService:
         Returns:
             List of embedding vectors (each vector is a list of floats)
         """
-        response = openai.Embedding.create(
+        response = self.client.embeddings.create(
             input=texts,
             model=self.model
         )
-        return [item["embedding"] for item in response["data"]]
+        return [item.embedding for item in response.data]

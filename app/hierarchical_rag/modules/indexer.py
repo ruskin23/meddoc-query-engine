@@ -1,8 +1,6 @@
 from typing import List, Dict, Any
-from abc import ABC, abstractmethod
-import hashlib
-
 from datetime import datetime
+import hashlib
 
 from app.core import BaseIndexer
 from app.db import Database, PdfFile, PdfPages
@@ -24,21 +22,21 @@ class DocumentProcessor:
         docs = []
         # Process questions from the page
         for question in page.questions:
-            question_hash = hashlib.sha256(question.encode()).hexdigest()[:16]
+            question_hash = hashlib.sha256(question.question.encode()).hexdigest()[:16]
             docs.append({
                 "id": f"q-{page.id}-{question_hash}",
-                "question": question,
-                "tags": page.tags,
+                "question": question.question,
+                "tags": [tag.tag for tag in page.tags],
                 "page_id": page.id,
                 "pdf_id": pdf_id
             })
         # Process chunks from the page
         for chunk in page.chunks:
-            chunk_hash = hashlib.sha256(chunk.encode()).hexdigest()[:16]
+            chunk_hash = hashlib.sha256(chunk.chunk.encode()).hexdigest()[:16]
             docs.append({
                 "id": f"c-{page.id}-{chunk_hash}",
-                "chunk": chunk,
-                "tags": page.tags,
+                "chunk": chunk.chunk,
+                "tags": [tag.tag for tag in page.tags],
                 "page_id": page.id,
                 "pdf_id": pdf_id
             })

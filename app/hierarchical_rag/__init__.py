@@ -23,6 +23,7 @@ from .modules.retreiver import (
     ScoreReranker,
     HierarchicalRetriever,
 )
+from .modules.prompts import TEMPLATES
 from .pipelines.generator import GenerationPipeline
 from .pipelines.indexer import IndexingPipeline
 from .pipelines.retreiver import RetrievalPipeline
@@ -51,6 +52,8 @@ __all__ = [
     "PineconeRetrieverAdapter",
     "ScoreReranker",
     "HierarchicalRetriever",
+    # Prompts
+    "TEMPLATES",
     # Pipelines
     "GenerationPipeline",
     "IndexingPipeline",

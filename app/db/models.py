@@ -7,7 +7,6 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     UniqueConstraint,
-    Index,
     func
 )
 from sqlalchemy.orm import declarative_base, relationship

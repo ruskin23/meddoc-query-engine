@@ -1,5 +1,4 @@
-from typing import Any
-from app.core import PromptProcessor, PromptPayload, PromptTemplate
+from app.core import PromptTemplate
 
 from ..models.models import QAPairs, TagList
 

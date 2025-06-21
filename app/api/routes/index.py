@@ -3,7 +3,6 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.db import Database, PdfFile
 from app.workflows import generate, index
-from sqlalchemy import func
 from openai import OpenAI
 
 from app.core import settings
