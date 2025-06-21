@@ -1,62 +1,50 @@
 import pinecone
-from datetime import datetime
 
 from app.core.embedding import EmbeddingService
 from app.core.indexing import PineconeIndexer
+from app.hierarchical_rag.modules.indexer import HierarchicalIndexing, HierarchicalIndexer
+from app.hierarchical_rag.pipelines.indexer import IndexingPipeline
 from app.db.base import Database
-from app.db.models import PdfFile
 
-from app.hierarchical_rag.indexer import IndexDocuments
 
-def get_indexer(client, name, embed):
-    index = client.Index(name)
-    indexer = PineconeIndexer(index, embed)
-    return IndexDocuments(indexer)
+def create_embedding_service(model: str) -> EmbeddingService:
+    return EmbeddingService(model=model)
 
-def index_pdfs(db: Database, 
-               question_index_name: str, 
-               chunk_index_name: str, 
-               embedding_model: str):
+
+def create_pinecone_indexer(client: pinecone.Pinecone, index_name: str, embed_service: EmbeddingService) -> PineconeIndexer:
+    index = client.Index(index_name)
+    return PineconeIndexer(index=index, embedding_service=embed_service)
+
+
+def create_indexing_pipeline(
+    db: Database,
+    question_index_name: str,
+    chunk_index_name: str,
+    embedding_model: str
+) -> IndexingPipeline:
     
-    pinecone_client = pinecone.Pinecone()
-    embedding_service = EmbeddingService(model=embedding_model)
-    
-    question_indexer = get_indexer(pinecone_client, question_index_name, embedding_service)
-    chunk_indexer = get_indexer(pinecone_client, chunk_index_name, embedding_service)
-        
-    question_docs = []
-    chunk_docs = []
+    client = pinecone.Pinecone()
+    embed_service = create_embedding_service(embedding_model)
 
-    with db.session() as session:
-        pdfs = session.query(PdfFile).filter_by(indexed=False).all()
-        
-        for pdf in pdfs:
-            pages = pdf.pages
-            
-            for page in pages:
-                questions = page.questions
-                tags = page.tags
-                chunks = page.chunks
-                
-                for question in questions:
-                    question_docs.append({
-                        'question': question,
-                        'tags': tags,
-                        'page_id': page.id,
-                        'pdf_id': pdf.id
-                    })
+    question_indexer = create_pinecone_indexer(client, question_index_name, embed_service)
+    chunk_indexer = create_pinecone_indexer(client, chunk_index_name, embed_service)
 
-                for chunk in chunks:
-                    chunk_docs.append({
-                        'chunk': chunk,
-                        'tags': tags,
-                        'page_id': page.id,
-                        'pdf_id': pdf.id
-                    })
+    index_strategy = HierarchicalIndexing(question_indexer, chunk_indexer)
+    hierarchical_indexer = HierarchicalIndexer(index_strategy=index_strategy, db=db)
 
-        question_indexer.index_questions(question_docs)
-        chunk_indexer.index_chunks(chunk_docs)
+    return IndexingPipeline(indexer=hierarchical_indexer)
 
-        for pdf in pdfs:
-            pdf.indexed = True
-            pdf.indexed_at = datetime.now(datetime.now())
+
+def index(
+    db: Database,
+    question_index_name: str,
+    chunk_index_name: str,
+    embedding_model: str
+):
+    pipeline = create_indexing_pipeline(
+        db=db,
+        question_index_name=question_index_name,
+        chunk_index_name=chunk_index_name,
+        embedding_model=embedding_model
+    )
+    pipeline.run()

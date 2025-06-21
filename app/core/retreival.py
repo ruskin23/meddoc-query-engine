@@ -1,7 +1,6 @@
 import logging
 from typing import List, Dict, Any
 from app.core.embedding import EmbeddingService
-from app.core.prompting import PromptService
 
 class PineconeRetriever:
     def __init__(self, index, embedding_service: EmbeddingService):

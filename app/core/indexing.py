@@ -2,33 +2,58 @@ import uuid
 from typing import List, Dict, Any
 
 from app.core.embedding import EmbeddingService
+from abc import ABC, abstractmethod
+from typing import List, Dict, Any
 
-class PineconeIndexer:
-    def __init__(self, index, embedding_service: EmbeddingService):
+class BaseIndexer(ABC):
+    @abstractmethod
+    def index_documents(self, documents: List[Dict[str, Any]]) -> None:
+        pass
+
+class PineconeIndexer(BaseIndexer):
+    def __init__(self, index, embedding_service, text_key: str, metadata_keys: List[str]):
         self.index = index
-        self.embedder = embedding_service
+        self.embedding_service = embedding_service
+        self.text_key = text_key
+        self.metadata_keys = metadata_keys
 
+    def index_documents(self, documents: List[Dict[str, Any]]) -> None:
+        for doc in documents:
+            doc['embedding'] = self.embedding_service.embed(doc[self.text_key])
+            
+        self.index.upsert(
+            vectors=[(
+                doc["id"], 
+                doc["embedding"], 
+                { k: doc[k] for k in self.metadata_keys }
+                ) for doc in documents]
+            )
+
+
+class PineconeIndexer(BaseIndexer):
+    def __init__(self, index, embedding_service: EmbeddingService, text_key: str, metadata_keys: List[str]):
+        self.index = index
+        self.embedding_service = embedding_service
+        self.text_key = text_key
+        self.metadata_keys = metadata_keys
+        
     def chunked(self, iterable, size: int):
         for i in range(0, len(iterable), size):
             yield iterable[i:i + size]
 
-    def index_to_pinecone(
+    def index_documents(
         self,
         documents: List[Dict[str, Any]],
-        text_key: str,
-        metadata_keys: List[str],
-        batch_size: int = 100,
-        include_text_in_metadata: bool = True
+        batch_size: int = 100
     ):
         for batch in self.chunked(documents, batch_size):
-            texts = [doc[text_key] for doc in batch]
+            texts = [doc[self.text_key] for doc in batch]
             embeddings = self.embedder.embed(texts)
 
             pinecone_batch = []
             for doc, emb in zip(batch, embeddings):
-                metadata = {k: doc.get(k) for k in metadata_keys if k in doc}
-                if include_text_in_metadata:
-                    metadata[text_key] = doc[text_key]
+                metadata = {k: doc.get(k) for k in self.metadata_keys if k in doc}
+                metadata[self.text_key] = doc[self.text_key]
 
                 pinecone_batch.append({
                     "id": str(uuid.uuid4()),
