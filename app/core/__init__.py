@@ -8,6 +8,17 @@ from .indexing import BaseIndexer, PineconeIndexer
 from .prompting import PromptPayload, PromptTemplate, PromptRunner, PromptProcessor
 from .pipelines import Generate, Index, Retreive
 from .retreival import PineconeRetriever
+from .exceptions import (
+    MedDocError,
+    DatabaseError,
+    PDFProcessingError,
+    ExtractionError,
+    GenerationError,
+    IndexingError,
+    RetrievalError,
+    ConfigurationError,
+    ValidationError,
+)
 
 __all__ = [
     "settings",
@@ -24,4 +35,13 @@ __all__ = [
     "Index",
     "Retreive",
     "PineconeRetriever",
+    "MedDocError",
+    "DatabaseError",
+    "PDFProcessingError",
+    "ExtractionError",
+    "GenerationError",
+    "IndexingError",
+    "RetrievalError",
+    "ConfigurationError",
+    "ValidationError",
 ]
