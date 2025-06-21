@@ -9,10 +9,13 @@ from openai import OpenAI
 router = APIRouter()
 
 @router.get("/status")
-def status_endpoint():
-    """Get the current status of PDF processing pipeline"""
-    db = Database(settings.database_url)
+def status_endpoint() -> dict:
+    """API endpoint to get the current status of the PDF processing pipeline.
     
+    Returns:
+        JSON response with counts of files in each processing state
+    """
+    db = Database(settings.database_url)
     with db.session() as session:
         # Count files in each state
         total_files = session.query(func.count(PdfFile.id)).scalar()
@@ -42,44 +45,49 @@ def status_endpoint():
         }
 
 @router.post("/generate")
-def generate_endpoint():
-    """Generate questions, tags, and chunks for extracted PDFs"""
+def generate_endpoint() -> dict:
+    """API endpoint to generate questions, tags, and chunks for extracted PDFs.
+    
+    Returns:
+        JSON response with status and message
+    """
     db = Database(settings.database_url)
     client = OpenAI(api_key=settings.openai_api_key)
-
-    generate(db=db, 
-             client=client, 
-             model=settings.openai_model)
-    
+    generate(db=db, client=client, model=settings.openai_model)
     return {"status": "success", "message": "Content generation completed"}
 
 @router.post("/index")
-def index_endpoint():
-    """Index generated content into vector database"""
-    db = Database(settings.database_url)
+def index_endpoint() -> dict:
+    """API endpoint to index generated content into the vector database.
     
-    index(db=db, 
-          question_index_name=settings.question_index_name, 
-          chunk_index_name=settings.chunk_index_name, 
-          embedding_model=settings.embedding_model)
-
+    Returns:
+        JSON response with status and message
+    """
+    db = Database(settings.database_url)
+    index(
+        db=db,
+        question_index_name=settings.question_index_name,
+        chunk_index_name=settings.chunk_index_name,
+        embedding_model=settings.embedding_model
+    )
     return {"status": "success", "message": "Content indexed successfully"}
 
 @router.post("/")
-def full_pipeline_endpoint():
-    """Run both generation and indexing in sequence"""
+def full_pipeline_endpoint() -> dict:
+    """API endpoint to run both generation and indexing in sequence.
+    
+    Returns:
+        JSON response with status and message
+    """
     db = Database(settings.database_url)
     client = OpenAI(api_key=settings.openai_api_key)
-
     # Step 1: Generate content
-    generate(db=db, 
-             client=client, 
-             model=settings.openai_model)
-    
+    generate(db=db, client=client, model=settings.openai_model)
     # Step 2: Index content
-    index(db=db, 
-          question_index_name=settings.question_index_name, 
-          chunk_index_name=settings.chunk_index_name, 
-          embedding_model=settings.embedding_model)
-
+    index(
+        db=db,
+        question_index_name=settings.question_index_name,
+        chunk_index_name=settings.chunk_index_name,
+        embedding_model=settings.embedding_model
+    )
     return {"status": "success", "message": "Full pipeline completed"}
