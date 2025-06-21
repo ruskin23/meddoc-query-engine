@@ -155,20 +155,22 @@ class HierarchicalRetriever:
         Returns:
             List of relevant context chunks with metadata
         """
-        # Expand query into multiple questions
+        # 1. Expand query into multiple questions
         questions = self.expander.expand(query)
 
-        # Map questions to relevant page IDs
+        # 2. Map questions to relevant page IDs via retreival and sorted by score
         question_to_pages = {
             q: self._get_page_ids(q)
             for q in questions
         }
 
-        # Get chunks from relevant pages
+        # 3. Get all chunks from relevant pages via retreival, flatten during retreival
         all_chunks = self._get_chunks(question_to_pages)
+        
+        # 4. Rerank with reranker
         top_chunks = self.reranker.rerank(all_chunks, top_n)
 
-        # Format results
+        # 4. Results
         return [
             {
                 "chunk": match["metadata"].get("chunk"),
@@ -189,14 +191,26 @@ class HierarchicalRetriever:
         Returns:
             List of page IDs sorted by relevance
         """
+        # 1. Retreival of top_k pages for given question
         matches = self.question_retriever.retrieve(question, top_k=top_k)
+        
         page_scores = {}
+        
         for match in matches:
+            
+            # 2. Get Page Id
             page_id = match.get("metadata", {}).get("page_id")
+            
             if page_id:
+                
+                # 3, Get Matching Score
                 score = match.get("score", 0)
+                
+                # 4. If new page, add to dictionary
                 if page_id not in page_scores or score > page_scores[page_id]:
                     page_scores[page_id] = score
+        
+        # 5. Sort by score and return
         return sorted(page_scores, key=page_scores.get, reverse=True)
 
     def _get_chunks(self, question_to_pages: Dict[str, List[int]], chunks_per_page: int = 3) -> List[Dict[str, Any]]:
@@ -210,11 +224,19 @@ class HierarchicalRetriever:
             List of chunk documents with question context
         """
         results = []
+        
         for question, page_ids in question_to_pages.items():
+
             for page_id in page_ids:
+                
+                # 1. Retreuve chunks for a question on a page
                 matches = self.chunk_retriever.retrieve(question, top_k=chunks_per_page, filter={"page_id": page_id})
+                
+                # 2. Add question to each match obtain
                 for m in matches:
                     m["question"] = question
+                    
+                    # 3. Add to result (the flattening)
                     results.append(m)
         return results
 
