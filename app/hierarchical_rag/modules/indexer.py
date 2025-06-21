@@ -51,11 +51,22 @@ class HierarchicalIndexer:
 
     def index_all(self):
         with self.db.session() as session:
-            pdfs = session.query(PdfFile).filter_by(indexed=False).all()
+            # Process files that have been generated but not yet indexed
+            pdfs = session.query(PdfFile).filter(
+                PdfFile.generated == True,
+                PdfFile.indexed == False
+            ).all()
+            
             for pdf in pdfs:
-                self.index_pdf(pdf)
-                pdf.indexed = True
-                pdf.indexed_at = datetime.now()
+                try:
+                    self.index_pdf(pdf)
+                    pdf.indexed = True
+                    pdf.indexed_at = datetime.now()
+                    session.commit()
+                    print(f"Indexed: {pdf.filepath}")
+                except Exception as e:
+                    print(f"Failed to index {pdf.filepath}: {e}")
+                    session.rollback()
 
     def index_pdf(self, pdf: PdfFile):
         all_docs = []

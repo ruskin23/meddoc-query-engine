@@ -24,13 +24,16 @@ class PdfFile(Base):
     extracted = Column(Boolean, default=False)
     extracted_at = Column(DateTime, nullable=True)
 
+    generated = Column(Boolean, default=False)
+    generated_at = Column(DateTime, nullable=True)
+
     indexed = Column(Boolean, default=False)
     indexed_at = Column(DateTime, nullable=True)
 
     created_at = Column(DateTime, default=func.now())
 
     # Relationships
-    pages = relationship("PdfPage", back_populates="file")
+    pages = relationship("PdfPages", back_populates="file")
     questions = relationship("PageQuestions", back_populates="file")
     tags = relationship("PageTags", back_populates="file")
     chunks = relationship("PageChunks", back_populates="file")
@@ -50,7 +53,7 @@ class PdfPages(Base):
     )
 
     # Relationships
-    file = relationship("PdfFile", back_populates="page")
+    file = relationship("PdfFile", back_populates="pages")
     questions = relationship("PageQuestions", back_populates="page")
     tags = relationship("PageTags", back_populates="page")
     chunks = relationship("PageChunks", back_populates="page")
@@ -65,7 +68,7 @@ class PageQuestions(Base):
     question = Column(String)
     
     # Relationships
-    page = relationship("PdfPage", back_populates="questions")
+    page = relationship("PdfPages", back_populates="questions")
     file = relationship("PdfFile", back_populates="questions")
 
 
@@ -79,7 +82,7 @@ class PageTags(Base):
     tag = Column(String)
     
     # Relationships
-    page = relationship("PdfPage", back_populates="tags")
+    page = relationship("PdfPages", back_populates="tags")
     file = relationship("PdfFile", back_populates="tags")
 
 class PageChunks(Base):
@@ -92,21 +95,7 @@ class PageChunks(Base):
     chunk = Column(String)
     
     # Relationships
-    page = relationship("PdfPage", back_populates="chunks")
-    file = relationship("PdfFile", back_populates="chunks")
-
-
-class PageChunks(Base):
-    __tablename__ = 'page_chunks'
-    
-    id = Column(Integer, primary_key=True)
-    page_id = Column(Integer, ForeignKey('pdf_pages.id'))
-    file_id = Column(Integer, ForeignKey('pdf_files.id'))
-
-    chunk = Column(String)
-    
-    # Relationships
-    page = relationship("PdfPage", back_populates="chunks")
+    page = relationship("PdfPages", back_populates="chunks")
     file = relationship("PdfFile", back_populates="chunks")
 
 class QueryRetreivals(Base):
@@ -137,5 +126,5 @@ class QueryRetreivals(Base):
 #     )
 
 #     # Relationships
-#     page = relationship("PdfPage", back_populates="steps")
+#     page = relationship("PdfPages", back_populates="steps")
 #     file = relationship("PdfFile", back_populates="processing_steps")
