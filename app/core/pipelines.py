@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Dict, Any
 
 class Generate(ABC):
     @abstractmethod
@@ -13,5 +13,5 @@ class Index(ABC):
 
 class Retreive(ABC):
     @abstractmethod 
-    def run(self, query: str, top_n: int = 15) -> List[str]:
+    def run(self, query: str, top_n: int = 15) -> List[Dict[str, Any]]:
         ...

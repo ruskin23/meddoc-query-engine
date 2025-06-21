@@ -1,5 +1,6 @@
 from typing import List, Dict, Any
 from abc import ABC, abstractmethod
+import hashlib
 
 from datetime import datetime
 
@@ -12,16 +13,18 @@ class DocumentProcessor:
     def process_page(page: PdfPages, pdf_id: int) -> List[Dict[str, Any]]:
         docs = []
         for question in page.questions:
+            question_hash = hashlib.sha256(question.encode()).hexdigest()[:16]
             docs.append({
-                "id": f"q-{page.id}-{hash(question)}",
+                "id": f"q-{page.id}-{question_hash}",
                 "question": question,
                 "tags": page.tags,
                 "page_id": page.id,
                 "pdf_id": pdf_id
             })
         for chunk in page.chunks:
+            chunk_hash = hashlib.sha256(chunk.encode()).hexdigest()[:16]
             docs.append({
-                "id": f"c-{page.id}-{hash(chunk)}",
+                "id": f"c-{page.id}-{chunk_hash}",
                 "chunk": chunk,
                 "tags": page.tags,
                 "page_id": page.id,

@@ -1,6 +1,7 @@
 from openai import OpenAI
 
 from app.core.prompting import PromptProcessor, PromptRunner
+from app.core.chunking import ChunkService
 from app.db.base import Database
 from app.hierarchical_rag.modules.generator import PromptService
 from app.hierarchical_rag.modules.prompts import TEMPLATES
@@ -18,16 +19,17 @@ def create_prompt_service(client: OpenAI, model: str) -> PromptService:
     processor = PromptProcessor(generator=runner, templates=TEMPLATES)
     return PromptService(processor)
 
-def create_generation_tasks(prompt_service: PromptService):
+def create_generation_tasks(prompt_service: PromptService, chunk_service: ChunkService):
     return [
         QuestionGenerationTask(prompt_service),
         TagGenerationTask(prompt_service),
-        ChunkGenerationTask(prompt_service)
+        ChunkGenerationTask(chunk_service)
     ]
 
 
 def generate(db: Database, client: OpenAI, model: str) -> None:
     prompt_service = create_prompt_service(client, model)
-    tasks = create_generation_tasks(prompt_service)
+    chunk_service = ChunkService()
+    tasks = create_generation_tasks(prompt_service, chunk_service)
     pipeline = GenerationPipeline(db=db, tasks=tasks)
     pipeline.run()

@@ -8,5 +8,5 @@ router = APIRouter()
 @router.post("/")
 def extract_endpoint():
     db = Database(settings.database_url)
-    extract_text()
+    extract_text(db)
     return {"status": "success", "message": "Text extracted"}
