@@ -11,26 +11,6 @@ class BaseIndexer(ABC):
         pass
 
 class PineconeIndexer(BaseIndexer):
-    def __init__(self, index, embedding_service, text_key: str, metadata_keys: List[str]):
-        self.index = index
-        self.embedding_service = embedding_service
-        self.text_key = text_key
-        self.metadata_keys = metadata_keys
-
-    def index_documents(self, documents: List[Dict[str, Any]]) -> None:
-        for doc in documents:
-            doc['embedding'] = self.embedding_service.embed(doc[self.text_key])
-            
-        self.index.upsert(
-            vectors=[(
-                doc["id"], 
-                doc["embedding"], 
-                { k: doc[k] for k in self.metadata_keys }
-                ) for doc in documents]
-            )
-
-
-class PineconeIndexer(BaseIndexer):
     def __init__(self, index, embedding_service: EmbeddingService, text_key: str, metadata_keys: List[str]):
         self.index = index
         self.embedding_service = embedding_service
@@ -48,7 +28,7 @@ class PineconeIndexer(BaseIndexer):
     ):
         for batch in self.chunked(documents, batch_size):
             texts = [doc[self.text_key] for doc in batch]
-            embeddings = self.embedder.embed(texts)
+            embeddings = self.embedding_service.embed(texts)
 
             pinecone_batch = []
             for doc, emb in zip(batch, embeddings):

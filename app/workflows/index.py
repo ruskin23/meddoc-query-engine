@@ -1,4 +1,5 @@
 import pinecone
+from typing import List
 
 from app.core.embedding import EmbeddingService
 from app.core.indexing import PineconeIndexer
@@ -11,9 +12,9 @@ def create_embedding_service(model: str) -> EmbeddingService:
     return EmbeddingService(model=model)
 
 
-def create_pinecone_indexer(client: pinecone.Pinecone, index_name: str, embed_service: EmbeddingService) -> PineconeIndexer:
+def create_pinecone_indexer(client: pinecone.Pinecone, index_name: str, embed_service: EmbeddingService, text_key: str, metadata_keys: List[str]) -> PineconeIndexer:
     index = client.Index(index_name)
-    return PineconeIndexer(index=index, embedding_service=embed_service)
+    return PineconeIndexer(index=index, embedding_service=embed_service, text_key=text_key, metadata_keys=metadata_keys)
 
 
 def create_indexing_pipeline(
@@ -26,8 +27,8 @@ def create_indexing_pipeline(
     client = pinecone.Pinecone()
     embed_service = create_embedding_service(embedding_model)
 
-    question_indexer = create_pinecone_indexer(client, question_index_name, embed_service)
-    chunk_indexer = create_pinecone_indexer(client, chunk_index_name, embed_service)
+    question_indexer = create_pinecone_indexer(client, question_index_name, embed_service, "question", ["tags", "page_id", "pdf_id"])
+    chunk_indexer = create_pinecone_indexer(client, chunk_index_name, embed_service, "chunk", ["tags", "page_id", "pdf_id"])
 
     index_strategy = HierarchicalIndexing(question_indexer, chunk_indexer)
     hierarchical_indexer = HierarchicalIndexer(index_strategy=index_strategy, db=db)
