@@ -5,7 +5,10 @@ from typing import Optional
 # Load environment variables from .env file
 load_dotenv()
 
+
 class Settings(BaseSettings):
+    """Application configuration settings loaded from environment variables."""
+    
     # Database configuration
     database_url: str = "sqlite:///./meddoc.db"
     
@@ -30,6 +33,7 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore"
     )
+
 
 # Create settings instance
 settings = Settings()

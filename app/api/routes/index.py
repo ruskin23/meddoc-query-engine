@@ -4,7 +4,7 @@ from app.workflows.generate import generate
 from app.workflows.index import index
 from sqlalchemy import func
 
-from app.core.config import settings
+from app.core import settings
 from openai import OpenAI
 
 router = APIRouter()

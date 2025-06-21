@@ -2,13 +2,25 @@ from typing import List, Callable, Dict
 import re
 import tiktoken
 
+
 class ChunkService:
-    def __init__(self, method: str = "recursive", chunk_size: int = 500, chunk_overlap: int = 50, model: str = "gpt-3.5-turbo"):
+    """Service for splitting text into chunks using various strategies."""
+    
+    def __init__(self, method: str = "recursive", chunk_size: int = 500, chunk_overlap: int = 50, model: str = "gpt-3.5-turbo") -> None:
+        """Initialize the chunking service.
+        
+        Args:
+            method: Chunking strategy ('fixed', 'recursive', 'sentence', 'tokens')
+            chunk_size: Maximum size of each chunk
+            chunk_overlap: Overlap between consecutive chunks
+            model: Model name for token-based chunking
+        """
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
         self.model = model
         self.encoding = tiktoken.encoding_for_model(model)
 
+        # Available chunking strategies
         self.strategies: Dict[str, Callable[[str], List[str]]] = {
             "fixed": self._fixed_chunks,
             "recursive": self._recursive_chunks,
@@ -22,19 +34,30 @@ class ChunkService:
         self.chunk_fn = self.strategies[method]
 
     def chunks_for_page(self, text: str) -> List[str]:
+        """Split page text into chunks using the configured strategy.
+        
+        Args:
+            text: Text content to chunk
+            
+        Returns:
+            List of text chunks
+        """
         return self.chunk_fn(text)
 
     def _fixed_chunks(self, text: str) -> List[str]:
+        """Split text into fixed-size chunks without considering word boundaries."""
         return [
             text[i:i + self.chunk_size]
             for i in range(0, len(text), self.chunk_size)
         ]
 
     def _recursive_chunks(self, text: str) -> List[str]:
+        """Split text recursively using natural separators."""
         separators = ["\n\n", "\n", ".", " ", ""]
         return self._recursive_split(text, separators)
 
     def _sentence_chunks(self, text: str) -> List[str]:
+        """Split text into chunks based on sentence boundaries."""
         sentences = re.split(r'(?<=[.!?]) +', text)
         chunks, current, current_len = [], [], 0
 
@@ -51,6 +74,7 @@ class ChunkService:
         return chunks
 
     def _token_chunks(self, text: str) -> List[str]:
+        """Split text into chunks based on token count."""
         tokens = self.encoding.encode(text)
         chunks = []
         for i in range(0, len(tokens), self.chunk_size - self.chunk_overlap):
@@ -60,6 +84,7 @@ class ChunkService:
         return chunks
 
     def _recursive_split(self, text: str, separators: List[str]) -> List[str]:
+        """Recursively split text using the best available separator."""
         for sep in separators:
             if sep and sep in text:
                 parts = text.split(sep)
@@ -74,7 +99,7 @@ class ChunkService:
                 if current:
                     chunks.append(current.strip())
 
-                # Overlap handling
+                # Add overlap between chunks
                 final_chunks = []
                 for i in range(len(chunks)):
                     if i == 0:

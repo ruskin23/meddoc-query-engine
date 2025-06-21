@@ -3,9 +3,20 @@ import fitz
 
 
 class TextExtraction:
-    def __init__(self):
+    """Service for extracting text content from PDF files."""
+    
+    def __init__(self) -> None:
+        """Initialize the text extraction service."""
         pass
 
-    def extract(self, filepath: str) -> List[Tuple[int, str]]:
+    def convert(self, filepath: str) -> List[str]:
+        """Extract text from all pages of a PDF file.
+        
+        Args:
+            filepath: Path to the PDF file
+            
+        Returns:
+            List of text content from each page
+        """
         doc = fitz.open(filepath)
-        return [(i + 1, page.get_text()) for i, page in enumerate(doc)]
+        return [page.get_text() for page in doc]

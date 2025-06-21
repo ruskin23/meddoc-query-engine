@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 from abc import ABC, abstractmethod
 
-from app.core.retreival import PineconeRetriever
+from app.core import PineconeRetriever
 from .generator import PromptService
 
 

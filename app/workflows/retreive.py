@@ -2,9 +2,7 @@ from openai import OpenAI
 import pinecone
 from typing import List
 
-from app.core.embedding import EmbeddingService
-from app.core.prompting import PromptProcessor, PromptRunner
-from app.core.retreival import PineconeRetriever
+from app.core import EmbeddingService, PromptProcessor, PromptRunner, PineconeRetriever
 
 from app.hierarchical_rag.pipelines.retreiver import RetrievalPipeline
 from app.hierarchical_rag.modules.retreiver import (

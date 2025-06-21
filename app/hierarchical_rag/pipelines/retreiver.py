@@ -1,6 +1,6 @@
 from typing import List, Dict, Any
 
-from app.core.pipelines import Retreive
+from app.core import Retreive
 
 class RetrievalPipeline(Retreive):
     def __init__(self, retriever):

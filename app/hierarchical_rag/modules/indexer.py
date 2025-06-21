@@ -4,7 +4,7 @@ import hashlib
 
 from datetime import datetime
 
-from app.core.indexing import BaseIndexer
+from app.core import BaseIndexer
 from app.db import Database, PdfFile, PdfPages
 
 class DocumentProcessor:

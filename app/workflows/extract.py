@@ -1,5 +1,5 @@
 from app.db import Database, PdfFile, PdfPages
-from app.core.extracting import TextExtraction
+from app.core import TextExtraction
 
 from pathlib import Path
 from datetime import datetime

@@ -1,4 +1,4 @@
-from app.core.pipelines import Index
+from app.core import Index
 from app.hierarchical_rag.modules.indexer import HierarchicalIndexer
 
 

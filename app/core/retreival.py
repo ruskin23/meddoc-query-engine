@@ -1,9 +1,18 @@
 import logging
-from typing import List, Dict, Any
-from app.core.embedding import EmbeddingService
+from typing import List, Dict, Any, Optional
+from app.core import EmbeddingService
+
 
 class PineconeRetriever:
-    def __init__(self, index, embedding_service: EmbeddingService):
+    """Retriever for querying Pinecone vector database."""
+    
+    def __init__(self, index, embedding_service: EmbeddingService) -> None:
+        """Initialize the Pinecone retriever.
+        
+        Args:
+            index: Pinecone index instance
+            embedding_service: Service for generating query embeddings
+        """
         self.index = index
         self.embedder = embedding_service
 
@@ -11,10 +20,22 @@ class PineconeRetriever:
         self,
         query: str,
         top_k: int = 5,
-        filter: Dict[str, Any] = None,
+        filter: Optional[Dict[str, Any]] = None,
         namespace: str = "",
         include_metadata: bool = True
     ) -> List[Dict[str, Any]]:
+        """Retrieve similar documents from Pinecone.
+        
+        Args:
+            query: Search query text
+            top_k: Number of top results to return
+            filter: Optional metadata filter
+            namespace: Pinecone namespace
+            include_metadata: Whether to include metadata in results
+            
+        Returns:
+            List of matching documents with scores and metadata
+        """
         embedding = self.embedder.embed([query])[0]
 
         try:

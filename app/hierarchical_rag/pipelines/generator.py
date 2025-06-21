@@ -1,6 +1,6 @@
 from typing import List
 
-from app.core.pipelines import Generate
+from app.core import Generate
 from app.hierarchical_rag.modules.generator import GenerationTask, PageRepository
 from app.db import Database, PdfFile
 from datetime import datetime
