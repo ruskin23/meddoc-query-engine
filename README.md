@@ -99,19 +99,38 @@ The application is served via a FastAPI server.
 2.  Add the following environment variables. You will need to create two indexes in your Pinecone project with dimensions corresponding to your chosen embedding model (e.g., 1536 for `text-embedding-3-small`).
 
     ```env
-    # Database
-    DATABASE_URL="sqlite:///./meddoc.db"
+    # Database Configuration
+    DATABASE_URL=sqlite:///./meddoc.db
 
-    # OpenAI
-    OPENAI_API_KEY="your-openai-api-key"
-    OPENAI_MODEL="gpt-4-turbo"
-    EMBEDDING_MODEL="text-embedding-3-small"
+    # OpenAI Configuration
+    OPENAI_API_KEY=your-openai-api-key-here
+    OPENAI_MODEL=gpt-4-turbo
 
-    # Pinecone
-    PINECONE_API_KEY="your-pinecone-api-key"
-    PINECONE_ENVIRONMENT="your-pinecone-environment"
-    QUESTION_INDEX_NAME="your-pinecone-question-index"
-    CHUNK_INDEX_NAME="your-pinecone-chunk-index"
+    # Embedding Model Configuration
+    EMBEDDING_MODEL=text-embedding-3-small
+
+    # Pinecone Configuration
+    PINECONE_API_KEY=your-pinecone-api-key-here
+    PINECONE_ENVIRONMENT=your-pinecone-environment-here
+    QUESTION_INDEX_NAME=your-question-index-name
+    CHUNK_INDEX_NAME=your-chunk-index-name
+    ```
+
+    **Required Variables:**
+    - `OPENAI_API_KEY`: Your OpenAI API key (required)
+    - `QUESTION_INDEX_NAME`: Name of your Pinecone question index (required)
+    - `CHUNK_INDEX_NAME`: Name of your Pinecone chunk index (required)
+
+    **Optional Variables (with defaults):**
+    - `DATABASE_URL`: Database connection string (default: `sqlite:///./meddoc.db`)
+    - `OPENAI_MODEL`: OpenAI model to use (default: `gpt-4-turbo`)
+    - `EMBEDDING_MODEL`: Embedding model to use (default: `text-embedding-3-small`)
+    - `PINECONE_API_KEY`: Pinecone API key (uses default if not set)
+    - `PINECONE_ENVIRONMENT`: Pinecone environment (uses default if not set)
+
+3.  Test your configuration:
+    ```bash
+    python test_config.py
     ```
 
 ### Running the Application
