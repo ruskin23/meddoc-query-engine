@@ -20,6 +20,7 @@ class PdfFile(Base):
     """Model representing a PDF file in the database."""
     
     __tablename__ = 'pdf_files'
+    __allow_unmapped__ = True
 
     id: int = Column(Integer, primary_key=True)
     filepath: str = Column(String, unique=True, index=True)
@@ -47,6 +48,7 @@ class PdfPages(Base):
     """Model representing individual pages of a PDF file."""
     
     __tablename__ = 'pdf_pages'
+    __allow_unmapped__ = True
 
     id: int = Column(Integer, primary_key=True, autoincrement=True)
     file_id: int = Column(Integer, ForeignKey('pdf_files.id'), index=True)
@@ -69,6 +71,7 @@ class PageQuestions(Base):
     """Model representing questions extracted from PDF pages."""
     
     __tablename__ = 'page_questions'
+    __allow_unmapped__ = True
     
     id: int = Column(Integer, primary_key=True)
     page_id: int = Column(Integer, ForeignKey('pdf_pages.id'))
@@ -85,6 +88,7 @@ class PageTags(Base):
     """Model representing tags extracted from PDF pages."""
     
     __tablename__ = 'page_tags'
+    __allow_unmapped__ = True
     
     id: int = Column(Integer, primary_key=True)
     page_id: int = Column(Integer, ForeignKey('pdf_pages.id'))
@@ -101,6 +105,7 @@ class PageChunks(Base):
     """Model representing text chunks extracted from PDF pages."""
     
     __tablename__ = 'page_chunks'
+    __allow_unmapped__ = True
     
     id: int = Column(Integer, primary_key=True)
     page_id: int = Column(Integer, ForeignKey('pdf_pages.id'))
@@ -117,6 +122,7 @@ class QueryRetreivals(Base):
     """Model for storing query retrieval history."""
     
     __tablename__ = 'query_retreival'
+    __allow_unmapped__ = True
     
     id: int = Column(Integer, primary_key=True)
     

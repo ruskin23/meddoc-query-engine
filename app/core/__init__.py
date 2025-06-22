@@ -2,26 +2,26 @@
 
 from .config import settings
 from .embedding import EmbeddingService
-from .extracting import TextExtraction
+from .text import TextExtraction
 from .chunking import ChunkService
-from .indexing import BaseIndexer, PineconeIndexer
+from .pinecone import PineconeIndexer, PineconeRetriever
 from .prompting import PromptPayload, PromptTemplate, PromptRunner, PromptProcessor
-from .pipelines import Generate, Index, Retreive
-from .retreival import PineconeRetriever
+from .models import QAPair, QAPairs, TagList
+from .prompts import TEMPLATES
 
 __all__ = [
     "settings",
     "EmbeddingService",
     "TextExtraction",
     "ChunkService",
-    "BaseIndexer",
     "PineconeIndexer",
     "PromptPayload",
     "PromptTemplate",
     "PromptRunner",
     "PromptProcessor",
-    "Generate",
-    "Index",
-    "Retreive",
     "PineconeRetriever",
+    "QAPair",
+    "QAPairs", 
+    "TagList",
+    "TEMPLATES",
 ]

@@ -1,9 +1,10 @@
 import logging
-from typing import List, Any
+import time
+from typing import List
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel, Field
 from openai import OpenAI
-from app.workflows import retreive 
+from app.workflows import retrieve 
 from app.core import settings
 
 # Configure logging
@@ -46,22 +47,16 @@ def retrieve_endpoint(
     Raises:
         HTTPException: If retrieval fails
     """
-    import time
     start_time = time.time()
     
     try:
-        # Validate query
+        # Basic validation
         if not query.strip():
-            raise HTTPException(status_code=400, detail="Query cannot be empty or contain only whitespace")
+            raise HTTPException(status_code=400, detail="Query cannot be empty")
         
-        # Validate configuration
-        if not settings.openai_api_key:
-            raise HTTPException(status_code=400, detail="OpenAI API key is not configured")
-        if not settings.question_index_name or not settings.chunk_index_name:
-            raise HTTPException(status_code=400, detail="Pinecone index names are not configured")
-        
+        # Execute retrieval
         client = OpenAI(api_key=settings.openai_api_key)
-        results = retreive(
+        results = retrieve(
             query=query,
             client=client,
             model=settings.openai_model,
@@ -71,17 +66,17 @@ def retrieve_endpoint(
             top_n=top_n
         )
         
-        # Convert results to response format
-        retrieval_results = []
-        if results:
-            for result in results:
-                retrieval_results.append(RetrievalResult(
-                    chunk=result.get('chunk', ''),
-                    score=result.get('score', 0.0),
-                    page_id=result.get('page_id', 0),
-                    file_id=result.get('file_id', 0),
-                    metadata=result.get('metadata', {})
-                ))
+        # Format response
+        retrieval_results = [
+            RetrievalResult(
+                chunk=result.get('chunk', ''),
+                score=result.get('score', 0.0),
+                page_id=result.get('page_id', 0),
+                file_id=result.get('file_id', 0),
+                metadata=result.get('metadata', {})
+            )
+            for result in results or []
+        ]
         
         processing_time = (time.time() - start_time) * 1000
         logger.info(f"Retrieved {len(retrieval_results)} results for query: '{query}' in {processing_time:.2f}ms")
@@ -94,9 +89,7 @@ def retrieve_endpoint(
         )
         
     except HTTPException:
-        # Re-raise HTTPExceptions as-is
         raise
-        
     except Exception as e:
         logger.error(f"Error during retrieval: {e}")
         raise HTTPException(status_code=500, detail="Retrieval operation failed")

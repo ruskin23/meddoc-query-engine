@@ -6,7 +6,7 @@ import tiktoken
 class ChunkService:
     """Service for splitting text into chunks using various strategies."""
     
-    def __init__(self, method: str = "recursive", chunk_size: int = 500, chunk_overlap: int = 50, model: str = "gpt-3.5-turbo") -> None:
+    def __init__(self, method: str = "recursive", chunk_size: int = 500, chunk_overlap: int = 50, model: str = "gpt-4") -> None:
         """Initialize the chunking service.
         
         Args:

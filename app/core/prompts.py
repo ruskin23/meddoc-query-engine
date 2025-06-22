@@ -1,6 +1,5 @@
-from app.core import PromptTemplate
-
-from ..models.models import QAPairs, TagList
+from app.core.prompting import PromptTemplate
+from app.core.models import QAPairs, TagList
 
 # Template definitions for various prompt-based tasks in medical document processing
 TEMPLATES = {
@@ -103,4 +102,4 @@ TEMPLATES = {
             Vary the question types to maximize semantic coverage for retrieval.
         """
         )
-}
+} 

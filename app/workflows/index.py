@@ -1,83 +1,83 @@
+import logging
 import pinecone
-from typing import List
+import hashlib
+from datetime import datetime
+from typing import List, Dict, Any
 
 from app.core import EmbeddingService, PineconeIndexer
-from app.hierarchical_rag import HierarchicalIndexing, HierarchicalIndexer, IndexingPipeline
-from app.db import Database
+from app.db import Database, PdfFile
 
 
-def create_embedding_service(model: str) -> EmbeddingService:
-    """Create an embedding service for vector generation.
+class DocumentIndexer:
+    """Document indexer that handles questions and chunks separately."""
     
-    Args:
-        model: Embedding model name
+    def __init__(self, question_index_name: str, chunk_index_name: str, embedding_model: str):
+        """Initialize the document indexer.
         
-    Returns:
-        Configured embedding service
-    """
-    return EmbeddingService(model=model)
-
-
-def create_pinecone_indexer(
-    client: pinecone.Pinecone, 
-    index_name: str, 
-    embed_service: EmbeddingService, 
-    text_key: str, 
-    metadata_keys: List[str]
-) -> PineconeIndexer:
-    """Create a Pinecone indexer for document indexing.
+        Args:
+            question_index_name: Name of the question index in Pinecone
+            chunk_index_name: Name of the chunk index in Pinecone  
+            embedding_model: Model name for generating embeddings
+        """
+        # Initialize Pinecone and embedding service
+        self.client = pinecone.Pinecone()
+        self.embedding_service = EmbeddingService(model=embedding_model)
+        
+        # Create indexers for questions and chunks
+        self.question_indexer = PineconeIndexer(
+            index=self.client.Index(question_index_name),
+            embedding_service=self.embedding_service,
+            text_key="question",
+            metadata_keys=["tags", "page_id", "pdf_id"]
+        )
+        
+        self.chunk_indexer = PineconeIndexer(
+            index=self.client.Index(chunk_index_name),
+            embedding_service=self.embedding_service,
+            text_key="chunk", 
+            metadata_keys=["tags", "page_id", "pdf_id"]
+        )
     
-    Args:
-        client: Pinecone client instance
-        index_name: Name of the Pinecone index
-        embed_service: Service for generating embeddings
-        text_key: Key in document dict containing text to embed
-        metadata_keys: Keys to include as metadata
+    def index_file(self, pdf_file: PdfFile) -> None:
+        """Index all content from a PDF file.
         
-    Returns:
-        Configured Pinecone indexer
-    """
-    index = client.Index(index_name)
-    return PineconeIndexer(
-        index=index, 
-        embedding_service=embed_service, 
-        text_key=text_key, 
-        metadata_keys=metadata_keys
-    )
-
-
-def create_indexing_pipeline(
-    db: Database,
-    question_index_name: str,
-    chunk_index_name: str,
-    embedding_model: str
-) -> IndexingPipeline:
-    """Create an indexing pipeline for processing PDF files.
-    
-    Args:
-        db: Database connection
-        question_index_name: Name of the question index
-        chunk_index_name: Name of the chunk index
-        embedding_model: Model name for embeddings
+        Args:
+            pdf_file: PDF file to index
+        """
+        question_docs = []
+        chunk_docs = []
         
-    Returns:
-        Configured indexing pipeline
-    """
-    client = pinecone.Pinecone()
-    embed_service = create_embedding_service(embedding_model)
-
-    # Create separate indexers for questions and chunks
-    question_indexer = create_pinecone_indexer(
-        client, question_index_name, embed_service, "question", ["tags", "page_id", "pdf_id"]
-    )
-    chunk_indexer = create_pinecone_indexer(
-        client, chunk_index_name, embed_service, "chunk", ["tags", "page_id", "pdf_id"]
-    )
-
-    index_strategy = HierarchicalIndexing(question_indexer, chunk_indexer)
-    hierarchical_indexer = HierarchicalIndexer(index_strategy=index_strategy, db=db)
-
-    return IndexingPipeline(indexer=hierarchical_indexer)
+        # Process each page and collect documents
+        for page in pdf_file.pages:
+            page_tags = [tag.tag for tag in page.tags]
+            
+            # Create question documents
+            for question in page.questions:
+                question_hash = hashlib.sha256(question.question.encode()).hexdigest()[:16]
+                question_docs.append({
+                    "id": f"q-{page.id}-{question_hash}",
+                    "question": question.question,
+                    "tags": page_tags,
+                    "page_id": page.id,
+                    "pdf_id": pdf_file.id
+                })
+            
+            # Create chunk documents
+            for chunk in page.chunks:
+                chunk_hash = hashlib.sha256(chunk.chunk.encode()).hexdigest()[:16]
+                chunk_docs.append({
+                    "id": f"c-{page.id}-{chunk_hash}",
+                    "chunk": chunk.chunk,
+                    "tags": page_tags,
+                    "page_id": page.id,
+                    "pdf_id": pdf_file.id
+                })
+        
+        # Index documents in their respective indexes
+        if question_docs:
+            self.question_indexer.index_documents(question_docs)
+        if chunk_docs:
+            self.chunk_indexer.index_documents(chunk_docs)
 
 
 def index(
@@ -94,10 +94,26 @@ def index(
         chunk_index_name: Name of the chunk index
         embedding_model: Model name for embeddings
     """
-    pipeline = create_indexing_pipeline(
-        db=db,
-        question_index_name=question_index_name,
-        chunk_index_name=chunk_index_name,
-        embedding_model=embedding_model
-    )
-    pipeline.run()
+    indexer = DocumentIndexer(question_index_name, chunk_index_name, embedding_model)
+    
+    with db.session() as session:
+        # Find files that have been generated but not yet indexed
+        files = session.query(PdfFile).filter(
+            PdfFile.generated == True,
+            PdfFile.indexed == False
+        ).all()
+        
+        for file in files:
+            try:
+                # Index all content from the file
+                indexer.index_file(file)
+                
+                # Mark file as indexed
+                file.indexed = True
+                file.indexed_at = datetime.now()
+                
+                logging.info(f"Indexed: {file.filepath}")
+                
+            except Exception as e:
+                logging.error(f"Failed to index {file.filepath}: {e}")
+                session.rollback()

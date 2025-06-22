@@ -1,47 +1,100 @@
+import logging
 from openai import OpenAI
+from datetime import datetime
+from typing import List
 
-from app.core import PromptProcessor, PromptRunner, ChunkService
-from app.db import Database
-from app.hierarchical_rag import (
-    PromptService,
-    TEMPLATES,
-    QuestionGenerationTask,
-    TagGenerationTask,
-    ChunkGenerationTask,
-    GenerationPipeline,
-)
+from app.core import PromptProcessor, PromptRunner, ChunkService, TEMPLATES, QAPairs, TagList
+from app.db import Database, PdfFile, PageQuestions, PageTags, PageChunks
+from app.core.prompting import PromptPayload
 
 
-def create_prompt_service(client: OpenAI, model: str) -> PromptService:
-    """Create a prompt service for content generation.
+class ContentGenerator:
+    """Content generator that handles questions, tags, and chunks for PDF pages."""
     
-    Args:
-        client: OpenAI client instance
-        model: Model name to use for generation
+    def __init__(self, client: OpenAI, model: str):
+        """Initialize the content generator.
         
-    Returns:
-        Configured prompt service
-    """
-    runner = PromptRunner(client=client, model=model)
-    processor = PromptProcessor(generator=runner, templates=TEMPLATES)
-    return PromptService(processor)
-
-
-def create_generation_tasks(prompt_service: PromptService, chunk_service: ChunkService) -> list:
-    """Create a list of generation tasks for processing PDF pages.
+        Args:
+            client: OpenAI client for prompt-based generation
+            model: Model name to use for generation
+        """
+        # Create prompt processor for LLM-based generation
+        runner = PromptRunner(client=client, model=model)
+        self.prompt_processor = PromptProcessor(generator=runner, templates=TEMPLATES)
+        
+        # Create chunk service for text chunking
+        self.chunk_service = ChunkService()
     
-    Args:
-        prompt_service: Service for prompt-based generation
-        chunk_service: Service for text chunking
+    def generate_for_file(self, pdf_file: PdfFile, session) -> None:
+        """Generate questions, tags, and chunks for all pages in a PDF file.
         
-    Returns:
-        List of generation tasks
-    """
-    return [
-        QuestionGenerationTask(prompt_service),
-        TagGenerationTask(prompt_service),
-        ChunkGenerationTask(chunk_service)
-    ]
+        Args:
+            pdf_file: PDF file to process
+            session: Database session for storing results
+        """
+        for page in pdf_file.pages:
+            # Generate questions for the page
+            questions = self._generate_questions(page.page_text)
+            self._save_questions(page.id, pdf_file.id, questions, session)
+            
+            # Generate tags for the page
+            tags = self._generate_tags(page.page_text)
+            self._save_tags(page.id, pdf_file.id, tags, session)
+            
+            # Generate chunks for the page
+            chunks = self._generate_chunks(page.page_text)
+            self._save_chunks(page.id, pdf_file.id, chunks, session)
+    
+    def _generate_questions(self, page_text: str) -> List[str]:
+        """Generate questions from page text using LLM."""
+        payload = PromptPayload(
+            prompt_key="page_questions",
+            output_format=QAPairs,
+            inputs={"page_text": page_text}
+        )
+        result = self.prompt_processor.process(payload)
+        # Extract questions from the QAPairs result
+        if hasattr(result, 'pairs') and result.pairs:
+            return [pair.question for pair in result.pairs]
+        return []
+    
+    def _generate_tags(self, page_text: str) -> List[str]:
+        """Generate tags from page text using LLM."""
+        payload = PromptPayload(
+            prompt_key="body_tags_page",
+            output_format=TagList,
+            inputs={"page_text": page_text}
+        )
+        result = self.prompt_processor.process(payload)
+        return result.tags if hasattr(result, 'tags') else []
+    
+    def _generate_chunks(self, page_text: str) -> List[str]:
+        """Generate text chunks from page text."""
+        return self.chunk_service.chunks_for_page(page_text)
+    
+    def _save_questions(self, page_id: int, file_id: int, questions: List[str], session) -> None:
+        """Save generated questions to database."""
+        question_objects = [
+            PageQuestions(page_id=page_id, file_id=file_id, question=q)
+            for q in questions
+        ]
+        session.add_all(question_objects)
+    
+    def _save_tags(self, page_id: int, file_id: int, tags: List[str], session) -> None:
+        """Save generated tags to database."""
+        tag_objects = [
+            PageTags(page_id=page_id, file_id=file_id, tag=t)
+            for t in tags
+        ]
+        session.add_all(tag_objects)
+    
+    def _save_chunks(self, page_id: int, file_id: int, chunks: List[str], session) -> None:
+        """Save generated chunks to database."""
+        chunk_objects = [
+            PageChunks(page_id=page_id, file_id=file_id, chunk=c)
+            for c in chunks
+        ]
+        session.add_all(chunk_objects)
 
 
 def generate(db: Database, client: OpenAI, model: str) -> None:
@@ -52,8 +105,26 @@ def generate(db: Database, client: OpenAI, model: str) -> None:
         client: OpenAI client instance
         model: Model name to use for generation
     """
-    prompt_service = create_prompt_service(client, model)
-    chunk_service = ChunkService()
-    tasks = create_generation_tasks(prompt_service, chunk_service)
-    pipeline = GenerationPipeline(db=db, tasks=tasks)
-    pipeline.run()
+    generator = ContentGenerator(client, model)
+    
+    with db.session() as session:
+        # Find files that have been extracted but not yet generated
+        files = session.query(PdfFile).filter(
+            PdfFile.extracted == True,
+            PdfFile.generated == False
+        ).all()
+        
+        for file in files:
+            try:
+                # Generate content for all pages in the file
+                generator.generate_for_file(file, session)
+                
+                # Mark file as generated
+                file.generated = True
+                file.generated_at = datetime.now()
+                
+                logging.info(f"Generated content for: {file.filepath}")
+                
+            except Exception as e:
+                logging.error(f"Failed to generate content for {file.filepath}: {e}")
+                session.rollback()

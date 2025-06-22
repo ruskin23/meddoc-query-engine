@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     
     # OpenAI configuration
     openai_api_key: str
-    openai_model: str = "gpt-4-turbo"
+    openai_model: str = "gpt-4"
     
     # Embedding model configuration
     embedding_model: str = "text-embedding-3-small"

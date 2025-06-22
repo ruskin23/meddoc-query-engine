@@ -1,8 +1,9 @@
-from app.db import Database, PdfFile, PdfPages
-from app.core import TextExtraction
-
+import logging
 from pathlib import Path
 from datetime import datetime
+
+from app.db import Database, PdfFile, PdfPages
+from app.core import TextExtraction
 
 # Initialize text extraction service
 pdf_service = TextExtraction()
@@ -20,7 +21,7 @@ def extract_text(db: Database) -> None:
         for file in files:
             path = Path(file.filepath)
             if not path.exists():
-                print(f"File missing: {file.filepath}")
+                logging.warning(f"File not found: {file.filepath}")
                 continue
 
             try:
@@ -38,7 +39,7 @@ def extract_text(db: Database) -> None:
                 file.extracted = True
                 file.extracted_at = datetime.now()
                 
-                print(f"Extracted {len(pages)} pages from {file.filepath}")
+                logging.info(f"Extracted {len(pages)} pages from {file.filepath}")
 
             except Exception as e:
-                print(f"Failed to extract {file.filepath}: {e}")
+                logging.error(f"Failed to extract {file.filepath}: {e}")

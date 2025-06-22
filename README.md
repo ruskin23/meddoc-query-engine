@@ -12,7 +12,7 @@ The system returns:
 
 ## 2. Architecture & Strategy
 
-The application is built around a **Hierarchical RAG** strategy, which involves a multi-stage process for indexing and retrieval to maximize accuracy.
+The application is built around a **Hierarchical RAG** strategy with a clean, simplified architecture that focuses on core functionality without unnecessary abstractions.
 
 ### Processing Workflow
 
@@ -45,11 +45,11 @@ This two-stage process ensures that the search is both efficient and highly accu
 
 The application is served via a FastAPI server.
 
--   `POST /ingest`
+-   `POST /ingest/`
     -   Ingests PDF files from a specified directory into the system.
     -   **Body**: `{"directory_path": "/path/to/your/pdfs"}`
 
--   `POST /extract`
+-   `POST /extract/`
     -   Extracts text content from the ingested PDFs and stores it in the database.
 
 -   `GET /index/status`
@@ -66,7 +66,7 @@ The application is served via a FastAPI server.
 
 -   `GET /retrieve/`
     -   Performs a semantic search based on a user query.
-    -   **Params**:
+    -   **Query Params**:
         -   `query` (str): The search query.
         -   `top_n` (int, optional): The number of results to return. Defaults to 5.
 
@@ -74,7 +74,7 @@ The application is served via a FastAPI server.
 
 ### Prerequisites
 
--   Python 3.9+
+-   Python 3.12+
 -   Access to an OpenAI API key.
 -   A Pinecone account for vector storage.
 
@@ -86,10 +86,9 @@ The application is served via a FastAPI server.
     cd meddoc-query-engine
     ```
 
-2.  Install dependencies using `uv` (or `pip`):
+2.  Install dependencies using `pip`:
     ```bash
-    pip install uv
-    uv pip install -e .
+    pip install -e .
     ```
 
 ### Configuration
@@ -150,12 +149,12 @@ The application is served via a FastAPI server.
     ```bash
     curl -X POST -H "Content-Type: application/json" \
       -d '{"directory_path": "path/to/medical_pdfs"}' \
-      http://127.0.0.1:8000/ingest
+      http://127.0.0.1:8000/ingest/
     ```
 
 3.  **Extract Text**
     ```bash
-    curl -X POST http://127.0.0.1:8000/extract
+    curl -X POST http://127.0.0.1:8000/extract/
     ```
 
 4.  **Generate Content** (This may take some time depending on document size)

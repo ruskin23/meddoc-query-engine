@@ -4,12 +4,12 @@ from .ingest import ingest_pdfs
 from .extract import extract_text
 from .generate import generate
 from .index import index
-from .retreive import retreive
+from .retrieve import retrieve
 
 __all__ = [
     "ingest_pdfs",
     "extract_text", 
     "generate",
     "index",
-    "retreive",
+    "retrieve",
 ]

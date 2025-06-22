@@ -1,3 +1,4 @@
+import logging
 from pydantic import BaseModel
 from typing import Dict, Any
 from copy import deepcopy
@@ -76,7 +77,7 @@ class PromptRunner:
             return response.output_parsed
 
         except Exception as e:
-            print(f"[GENERATION ERROR] Template: '{template.name}' | Error: {e}")
+            logging.error(f"Generation failed for template '{template.name}': {e}")
             return {}
 
 
