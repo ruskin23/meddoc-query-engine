@@ -1,10 +1,10 @@
 # MedDoc Query Engine
 
-This project is a semantic search engine designed to query a library of medical PDF documents. It uses a sophisticated Retrieval-Augmented Generation (RAG) pipeline to understand user queries and retrieve relevant text excerpts from the documents.
+This project is a semantic search engine designed to query a library of medical PDF documents. It uses a Retrieval-Augmented Generation (RAG) pipeline to understand user queries and retrieve relevant text excerpts and corresponding pages from the documents.
 
 ## 1. Overview
 
-The core purpose of this application is to provide an accurate, semantic search experience for complex medical documents. Instead of relying on simple keyword matching, it leverages Large Language Models (LLMs) to understand the context and intent behind a user's query, ensuring that the returned results are highly relevant.
+The core purpose of this application is to provide an accurate, semantic search experience for complex medical documents. Instead of relying on simple keyword matching, it leverages OpenAI GPT Models to understand the context and intent behind a user's query, ensuring that the returned results are highly relevant.
 
 The system returns:
 1.  Text excerpts that semantically match the search query.
