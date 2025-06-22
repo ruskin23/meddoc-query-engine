@@ -99,14 +99,14 @@ The application is served via a FastAPI server.
 
     ```env
     # Database Configuration
-    DATABASE_URL=sqlite:///./meddoc.db
+    DATABASE_URL=sqlite:///./path/to/db
 
     # OpenAI Configuration
     OPENAI_API_KEY=your-openai-api-key-here
-    OPENAI_MODEL=gpt-4-turbo
+    OPENAI_MODEL=openai-gpt-model
 
     # Embedding Model Configuration
-    EMBEDDING_MODEL=text-embedding-3-small
+    EMBEDDING_MODEL=openai-text-embedding-model
 
     # Pinecone Configuration
     PINECONE_API_KEY=your-pinecone-api-key-here
@@ -122,7 +122,7 @@ The application is served via a FastAPI server.
 
     **Optional Variables (with defaults):**
     - `DATABASE_URL`: Database connection string (default: `sqlite:///./meddoc.db`)
-    - `OPENAI_MODEL`: OpenAI model to use (default: `gpt-4-turbo`)
+    - `OPENAI_MODEL`: OpenAI model to use (default: `gpt-4`)
     - `EMBEDDING_MODEL`: Embedding model to use (default: `text-embedding-3-small`)
     - `PINECONE_API_KEY`: Pinecone API key (uses default if not set)
     - `PINECONE_ENVIRONMENT`: Pinecone environment (uses default if not set)
