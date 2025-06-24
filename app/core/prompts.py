@@ -1,5 +1,5 @@
 from app.core.prompting import PromptTemplate
-from app.core.models import QAPairs, TagList
+from app.core.models import TagList
 
 # Template definitions for various prompt-based tasks in medical document processing
 TEMPLATES = {

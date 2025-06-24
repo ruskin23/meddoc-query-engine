@@ -6,7 +6,7 @@ from .text import TextExtraction
 from .chunking import ChunkService
 from .pinecone import PineconeIndexer, PineconeRetriever
 from .prompting import PromptPayload, PromptTemplate, PromptRunner, PromptProcessor
-from .models import QAPair, QAPairs, TagList
+from .models import Questions, TagList
 from .prompts import TEMPLATES
 
 __all__ = [
@@ -20,8 +20,7 @@ __all__ = [
     "PromptRunner",
     "PromptProcessor",
     "PineconeRetriever",
-    "QAPair",
-    "QAPairs", 
+    "Questions",
     "TagList",
     "TEMPLATES",
 ]

@@ -2,7 +2,8 @@ from openai import OpenAI
 import pinecone
 from typing import List, Dict, Any
 
-from app.core import EmbeddingService, PromptProcessor, PromptRunner, PineconeRetriever, TEMPLATES, TagList
+from app.core import EmbeddingService, PromptProcessor, PromptRunner, PineconeRetriever, TEMPLATES
+from app.core.models import Questions
 from app.core.prompting import PromptPayload
 
 
@@ -53,11 +54,11 @@ class HierarchicalRetriever:
         """Expand user query into multiple related questions."""
         payload = PromptPayload(
             prompt_key="questions_query",
-            output_format=TagList,
+            output_format=Questions,
             inputs={"query": query, "n_questions": n_questions}
         )
         result = self.prompt_processor.process(payload)
-        return result.tags if hasattr(result, 'tags') else []
+        return result.questions if hasattr(result, 'questions') else []
     
     def _get_relevant_pages(self, questions: List[str], pages_per_question: int = 5) -> set:
         """Get unique page IDs that are relevant to the expanded questions."""

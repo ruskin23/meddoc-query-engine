@@ -2,18 +2,11 @@ from pydantic import BaseModel
 from typing import List
 
 
-class QAPair(BaseModel):
-    """Model representing a single question-answer pair."""
+class Questions(BaseModel):
+    """Model representing a list of questions."""
     
-    question: str
-    answer: str
-    
+    questions: List[str]
 
-class QAPairs(BaseModel):
-    """Model representing a collection of question-answer pairs."""
-    
-    pairs: List[QAPair]
-    
 
 class TagList(BaseModel):
     """Model representing a list of tags."""

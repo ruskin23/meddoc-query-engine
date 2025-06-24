@@ -3,7 +3,8 @@ from openai import OpenAI
 from datetime import datetime
 from typing import List
 
-from app.core import PromptProcessor, PromptRunner, ChunkService, TEMPLATES, QAPairs, TagList
+from app.core import PromptProcessor, PromptRunner, ChunkService, TEMPLATES, TagList
+from app.core.models import Questions
 from app.db import Database, PdfFile, PageQuestions, PageTags, PageChunks
 from app.core.prompting import PromptPayload
 
@@ -49,14 +50,12 @@ class ContentGenerator:
         """Generate questions from page text using LLM."""
         payload = PromptPayload(
             prompt_key="page_questions",
-            output_format=QAPairs,
+            output_format=Questions,
             inputs={"page_text": page_text}
         )
         result = self.prompt_processor.process(payload)
-        # Extract questions from the QAPairs result
-        if hasattr(result, 'pairs') and result.pairs:
-            return [pair.question for pair in result.pairs]
-        return []
+        # Extract questions from the Questions result
+        return result.questions if hasattr(result, 'questions') else []
     
     def _generate_tags(self, page_text: str) -> List[str]:
         """Generate tags from page text using LLM."""
